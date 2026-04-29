@@ -57,3 +57,56 @@ resource "aws_schemas_schema" "test_pub_success" {
     "message": "Transaction #12345 failed to process."
   })
 }
+
+
+
+# Lambda 3: Xử lý Log 
+resource "aws_lambda_function" "log_processor" {
+  filename      = "processor.zip"
+  function_name = "LogProcessor"
+  role          = aws_iam_role.log_project_role.arn
+  handler       = "processor.lambda_handler"
+  runtime       = "python3.9"
+  timeout       = 30
+
+  environment {
+    variables = {
+      SNS_TOPIC_ARN = aws_sns_topic.log-alerts-topic.arn
+    }
+  }
+}
+
+# Kết nối SQS FIFO làm Trigger cho Lambda
+resource "aws_lambda_event_source_mapping" "sqs_fifo_trigger" {
+  event_source_arn = aws_sqs_queue.log_queue_fifo.arn 
+  function_name    = aws_lambda_function.log_processor.arn
+  batch_size       = 10 
+}
+
+# Test Case 1: Lỗi hệ thống (Gửi Email)
+resource "aws_schemas_schema" "test_processor_error" {
+  name          = "_${aws_lambda_function.log_processor.function_name}-ErrorAlert"
+  registry_name = "lambda-testevent-schemas"
+  type          = "JSONSchemaDraft4"
+  content       = jsonencode({
+    "Records": [
+      {
+        "body": "{\"appId\": \"FCAJ_Backend\", \"level\": \"ERROR\", \"message\": \"Database FIFO connection failed\"}"
+      }
+    ]
+  })
+}
+
+# Test Case 2: Thông tin bình thường (Chỉ lưu trữ)
+resource "aws_schemas_schema" "test_processor_info" {
+  name          = "_${aws_lambda_function.log_processor.function_name}-InfoLog"
+  registry_name = "lambda-testevent-schemas"
+  type          = "JSONSchemaDraft4"
+  content       = jsonencode({
+    "Records": [
+      {
+        "body": "{\"appId\": \"FCAJ_Frontend\", \"level\": \"INFO\", \"message\": \"User session preserved in FIFO\"}"
+      }
+    ]
+  })
+}
