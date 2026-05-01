@@ -82,10 +82,16 @@ def handle_alert(app_id, msg, dt):
         
         # Publish tới SNS
         sns.publish(
-            TopicArn=TOPIC_ARN,
-            Subject=f"[ALERT] {app_id}",
-            Message=f"Time: {dt}\nMsg: {msg}"
-        )
+                TopicArn=TOPIC_ARN,
+                Subject=f"[ALERT] {app_id}",
+                Message=f"Time: {dt}\nMsg: {msg}",
+                MessageAttributes={
+                    'appId': {  
+                        'DataType': 'String',
+                        'StringValue': str(app_id)
+                    }
+                }
+            )
     except ClientError as e:
         if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
             print(f"SNS Error: {e}")

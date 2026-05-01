@@ -10,3 +10,9 @@ resource "aws_sqs_queue" "log_queue" {
   message_retention_seconds  = 345600
   visibility_timeout_seconds = 30 
 }
+resource "aws_lambda_event_source_mapping" "sqs_to_processor" {
+  event_source_arn = aws_sqs_queue.log_queue.arn
+  function_name    = aws_lambda_function.processor.arn
+  batch_size       = 10  
+  enabled          = true
+}
