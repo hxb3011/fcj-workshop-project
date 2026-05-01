@@ -1,14 +1,14 @@
 module "database" {
   source       = "./modules/database"
-  project_name = "" 
+  project_name = "fcaj-v2" 
 }
 module "storage" {
   source       = "./modules/storage"
-  project_name = ""
+  project_name = "fcaj-v2"
 }
 module "messaging" {
   source       = "./modules/messaging"
-  project_name = ""
+  project_name = "fcaj-v2"
 }
 module "shipper_lambda" {
   source        = "./modules/compute"
@@ -30,8 +30,8 @@ module "shipper_lambda" {
 module "processor_lambda" {
   source        = "./modules/compute"
   function_name = "processor"
-  filename      = "processor" # Tìm file processor.py ở gốc
-  timeout       = 60           # Tăng timeout cho xử lý batch/parallel
+  filename      = "processor" 
+  timeout       = 60       
   memory_size   = 256
 
   environment_variables = {
@@ -41,7 +41,7 @@ module "processor_lambda" {
     SNS_TOPIC_ARN = module.messaging.sns_topic_arn
   }
 
-  additional_policies = [
+ additional_policies = [
     {
       Effect   = "Allow"
       Action   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
@@ -50,7 +50,7 @@ module "processor_lambda" {
     {
       Effect   = "Allow"
       Action   = ["dynamodb:PutItem", "dynamodb:BatchWriteItem"]
-      Resource = module.database.dynamodb_all_table_arns
+      Resource = tolist(module.database.dynamodb_all_table_arns)
     },
     {
       Effect   = "Allow"
