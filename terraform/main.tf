@@ -1,3 +1,15 @@
+module "iam" {
+  source                = "./modules/iam"
+  project_name          = "fcaj-v2"
+  user_pool_arn         = module.auth.user_pool_arn
+  app_clients_table_arn = module.database.dynamodb_app_clients_name.arn
+  sns_topic_arn         = module.messaging.sns_topic_arn
+}
+
+module "network" {
+  source       = "./modules/network"
+  project_name = "fcaj-v2"
+}
 module "database" {
   source       = "./modules/database"
   project_name = "fcaj-v2" 
@@ -64,12 +76,11 @@ module "processor_lambda" {
     }
   ]
 }
-
-resource "aws_lambda_event_source_mapping" "sqs_to_processor" {
-  event_source_arn = module.messaging.sqs_queue_arn
-  function_name    = module.processor_lambda.lambda_function_arn
-  batch_size       = 10 
+module "auth" {
+  source       = "./modules/auth"
+  project_name = "log-system" 
 }
+
 module "monitoring" {
   source              = "./modules/monitoring"
   project_name        = "log_system"
@@ -78,3 +89,31 @@ module "monitoring" {
   shipper_lambda_arn  = module.shipper_lambda.lambda_function_arn
   shipper_lambda_name = module.shipper_lambda.lambda_function_name
 }
+resource "aws_lambda_event_source_mapping" "sqs_to_processor" {
+  event_source_arn = module.messaging.sqs_queue_arn
+  function_name    = module.processor_lambda.lambda_function_arn
+  batch_size       = 10 
+}
+# module "register_app" {
+#   source          = "./modules/registerApp"
+#   project_name    = "fcaj-v2-api"
+#   aws_region      = "ap-southeast-1"
+  
+
+#   app_port        = 8000 
+#   container_image = "docker.io/your_docker_username/register-app:latest"
+
+
+#   subnets         = module.network.public_subnets
+#   security_groups = [module.network.ecs_sg_id]
+
+
+#   user_pool_id   = module.auth.user_pool_id
+#   table_name     = module.database.dynamodb_app_clients_name
+#   sns_topic_arn  = module.messaging.sns_topic_arn
+#   log_policy_arn = module.monitoring.log_pusher_policy_arn
+
+ 
+#   execution_role_arn = module.iam.execution_role_arn
+#   task_role_arn      = module.iam.task_role_arn
+# }

@@ -21,3 +21,22 @@ resource "aws_cloudwatch_log_subscription_filter" "log_to_shipper" {
   destination_arn = var.shipper_lambda_arn
   depends_on      = [aws_lambda_permission.allow_cloudwatch_shipper]
 }
+# cho phép gửi log
+resource "aws_iam_policy" "app_log_pusher_policy" {
+  name        = "AppLogPusherPolicy"
+  path        = "/"
+  description = "Policy cho phép CloudWatch Agent gửi log vào log-project"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogStreams"
+      ]
+      Resource = "${aws_cloudwatch_log_group.app_logs.arn}:*"
+    }]
+  })
+}
