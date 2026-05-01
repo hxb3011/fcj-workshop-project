@@ -7,7 +7,10 @@ output "dynamodb_app_logs_name" {
   description = "Tên bảng lưu trữ log (Hot Storage)"
   value       = aws_dynamodb_table.app_logs.name
 }
-
+output "dynamodb_app_logs_arn" {
+  description = "ARN của bảng AppLogs để module Analytics gán quyền"
+  value       = aws_dynamodb_table.app_logs.arn
+}
 output "dynamodb_noti_ttl_name" {
   description = "Tên bảng kiểm soát tần suất gửi thông báo"
   value       = aws_dynamodb_table.noti_ttl.name

@@ -1,5 +1,5 @@
 output "sns_topic_arn" {
-  value       = aws_sns_topic.log_alerts.arn
+  value       = aws_sns_topic.log-alerts-topic.arn
   description = "ARN của SNS Topic để các Lambda function hoặc CloudWatch Alarms sử dụng"
 }
 

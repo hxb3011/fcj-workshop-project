@@ -1,18 +1,20 @@
+# 1. IAM Role cho Lambda Getter
 resource "aws_iam_role" "getter_role" {
-  name = "getter_execution_role"
+  name = "${var.project_name}-getter-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
       Principal = { Service = "lambda.amazonaws.com" }
     }]
   })
 }
 
+# 2. IAM Policy cho Getter (Query DynamoDB + Athena + S3)
 resource "aws_iam_role_policy" "getter_policy" {
-  name = "getter_policy"
+  name = "${var.project_name}-getter-policy"
   role = aws_iam_role.getter_role.id
 
   policy = jsonencode({
@@ -22,7 +24,7 @@ resource "aws_iam_role_policy" "getter_policy" {
         Sid      = "ReadHotLogsFromDynamoDB"
         Action   = ["dynamodb:Query", "dynamodb:GetItem"]
         Effect   = "Allow"
-        Resource = "arn:aws:dynamodb:*:*:table/AppLogs"
+        Resource = [var.dynamodb_app_logs_arn]
       },
       {
         Sid      = "ExecuteAthenaQueries"
@@ -47,11 +49,10 @@ resource "aws_iam_role_policy" "getter_policy" {
         ]
         Effect   = "Allow"
         Resource = [
-          "arn:aws:s3:::fcaj-log-archive-project",
-          "arn:aws:s3:::fcaj-athena-queries-project-output",
-          
-          "arn:aws:s3:::fcaj-log-archive-project/*",
-          "arn:aws:s3:::fcaj-athena-queries-project-output/*"
+          var.log_archive_bucket_arn,
+          "${var.log_archive_bucket_arn}/*",
+          var.athena_results_bucket_arn,
+          "${var.athena_results_bucket_arn}/*"
         ]
       },
       {
@@ -66,14 +67,12 @@ resource "aws_iam_role_policy" "getter_policy" {
 
 # 3. Cấu hình Workgroup cho Athena
 resource "aws_athena_workgroup" "log_project_workgroup" {
-  name = "log_project_workgroup"
-
-  # Cho phép Terraform xóa Workgroup ngay cả khi còn lịch sử truy vấn
+  name          = "${var.project_name}-workgroup"
   force_destroy = true 
 
   configuration {
     result_configuration {
-      output_location = "s3://${aws_s3_bucket.athena_results.bucket}/"
+      output_location = "s3://${var.athena_results_bucket_name}/"
     }
   }
 }

@@ -9,6 +9,12 @@ output "log_archive_bucket_arn" {
 output "athena_results_bucket_id" {
   value = aws_s3_bucket.athena_results.id
 }
+output "athena_results_bucket_arn" {
+  value = aws_s3_bucket.athena_results.arn
+}
+output "athena_results_bucket_name" {
+  value = aws_s3_bucket.athena_results.bucket
+}
 output "all_s3_arns" {
   description = "Dùng để gán quyền IAM cho Lambda"
   value = [

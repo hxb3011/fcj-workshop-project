@@ -94,6 +94,20 @@ resource "aws_lambda_event_source_mapping" "sqs_to_processor" {
   function_name    = module.processor_lambda.lambda_function_arn
   batch_size       = 10 
 }
+module "analytics" {
+  source                     = "./modules/analytics"
+  project_name               = "fcaj-v2"
+  
+  # Dữ liệu từ module database
+  dynamodb_app_logs_arn      = module.database.dynamodb_app_logs_arn
+  
+  # Dữ liệu từ module storage
+  log_archive_bucket_arn     = module.storage.log_archive_bucket_arn
+  athena_results_bucket_arn  = module.storage.athena_results_bucket_arn
+  athena_results_bucket_name = module.storage.athena_results_bucket_name 
+}
+
+
 # module "register_app" {
 #   source          = "./modules/registerApp"
 #   project_name    = "fcaj-v2-api"
@@ -117,3 +131,4 @@ resource "aws_lambda_event_source_mapping" "sqs_to_processor" {
 #   execution_role_arn = module.iam.execution_role_arn
 #   task_role_arn      = module.iam.task_role_arn
 # }
+
