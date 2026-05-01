@@ -1,9 +1,9 @@
-resource "aws_sqs_queue" "log_queue_fifo" {
-  name                        = "LogQueue.fifo"
+resource "aws_sqs_queue" "log_queue" {
+  name                        = "LogQueue"
   
-  fifo_queue                  = true
+  fifo_queue                  = false
   
-  content_based_deduplication = true
+  content_based_deduplication = false
 
   delay_seconds              = 0
   max_message_size           = 262144

@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "log_archive" {
-  bucket = "fcaj-log-archive"
+  bucket = "fcaj-log-archive-project"
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "log_archive_lifecycle" {
@@ -28,7 +28,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "log_archive_lifecycle" {
 }
 
 resource "aws_s3_bucket" "athena_results" {
-  bucket = "fcaj-athena-queries-output"
+  bucket = "fcaj-athena-queries-project-output"
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "athena_results_lifecycle" {
@@ -44,4 +44,16 @@ resource "aws_s3_bucket_lifecycle_configuration" "athena_results_lifecycle" {
       days = 7
     }
   }
+}
+
+output "log_archive_bucket_name" {
+  value       = aws_s3_bucket.log_archive.id
+}
+
+output "log_archive_bucket_arn" {
+  value       = aws_s3_bucket.log_archive.arn
+}
+
+output "athena_results_bucket_name" {
+  value       = aws_s3_bucket.athena_results.id
 }
