@@ -26,10 +26,10 @@ resource "aws_glue_catalog_table" "app_logs_table" {
     "projection.day.digits"             = "2"
     
     # Cấu hình cho appId (Vì appId là vô hạn/không cố định, ta dùng kiểu 'injected')
-    "projection.appId.type"             = "injected"
+    "projection.appid.type"             = "injected"
 
     # Định nghĩa cấu trúc thư mục trên S3
-    "storage.location.template"         = "s3://fcaj-log-archive-project/year=$${year}/month=$${month}/day=$${day}/appId=$${appId}/"
+    "storage.location.template"         = "s3://fcaj-log-archive-project/year=$${year}/month=$${month}/day=$${day}/appId=$${appid}/"
   }
 
   storage_descriptor {
@@ -69,7 +69,7 @@ resource "aws_glue_catalog_table" "app_logs_table" {
     type = "string"
   }
   partition_keys {
-    name = "appId"
+    name = "appid"
     type = "string"
   }
 }
