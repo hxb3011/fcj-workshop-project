@@ -56,20 +56,44 @@ def process_record(record):
         return None
 
 def lambda_handler(event, context):
-    """Main handler: Chạy song song I/O và Batch write DB"""
-    # Xử lý song song S3/SNS (max 10 threads)
-    with ThreadPoolExecutor(max_workers=10) as exe:
-        results = list(exe.map(process_record, event['Records']))
-    
-    items = [i for i in results if i]
+    logs_by_app = {}
+    items_for_dynamo = []
 
-    # 3. Ghi DynamoDB theo Batch (25 items/lượt)
-    if items:
+    for record in event['Records']:
+        body = json.loads(record['body'])
+        app_id = body.get('appId', 'unknown')
+        
+        ts = body.get('timestamp') or int(time.time() * 1000)
+        item = {
+            'appId': app_id,
+            'timestamp': ts,
+            'level': body.get('level', 'INFO').upper(),
+            'message': body.get('message', ''),
+            'expireAt': (ts // 1000) + 86400
+        }
+        items_for_dynamo.append(item)
+
+        if app_id not in logs_by_app:
+            logs_by_app[app_id] = []
+        logs_by_app[app_id].append(item)
+
+    dt = datetime.now(timezone.utc)
+    for app_id, logs in logs_by_app.items():
+        key = f"year={dt.year}/month={dt.month:02d}/day={dt.day:02d}/appId={app_id}/batch_{int(time.time())}.json"
+        
+        s3.put_object(
+            Bucket=BUCKET_NAME,
+            Key=key,
+            Body=json.dumps(logs),
+            ContentType='application/json'
+        )
+
+    if items_for_dynamo:
         with table_logs.batch_writer() as batch:
-            for i in items:
+            for i in items_for_dynamo:
                 batch.put_item(Item=i)
-
-    return {'processed': len(items)}
+                
+    return {'processed': len(items_for_dynamo)}
 
 def handle_alert(app_id, msg, dt):
     """Gửi SNS kèm cơ chế chống spam (Debounce 15p)"""
