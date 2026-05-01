@@ -1,5 +1,6 @@
+# Bucket lưu trữ Log lâu dài
 resource "aws_s3_bucket" "log_archive" {
-  bucket = "fcaj-log-archive-project"
+  bucket = "${var.project_name}-log-archive"
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "log_archive_lifecycle" {
@@ -8,7 +9,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "log_archive_lifecycle" {
   rule {
     id     = "archive_old_logs"
     status = "Enabled"
-
     filter {} 
 
     transition {
@@ -27,8 +27,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "log_archive_lifecycle" {
   }
 }
 
+# Bucket lưu trữ kết quả truy vấn Athena
 resource "aws_s3_bucket" "athena_results" {
-  bucket = "fcaj-athena-queries-project-output"
+  bucket = "${var.project_name}-athena-queries-output"
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "athena_results_lifecycle" {
@@ -37,23 +38,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "athena_results_lifecycle" {
   rule {
     id     = "cleanup_old_results"
     status = "Enabled"
-
     filter {} 
 
     expiration {
       days = 7
     }
   }
-}
-
-output "log_archive_bucket_name" {
-  value       = aws_s3_bucket.log_archive.id
-}
-
-output "log_archive_bucket_arn" {
-  value       = aws_s3_bucket.log_archive.arn
-}
-
-output "athena_results_bucket_name" {
-  value       = aws_s3_bucket.athena_results.id
 }

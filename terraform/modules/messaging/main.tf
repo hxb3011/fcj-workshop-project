@@ -1,5 +1,9 @@
+resource "aws_sns_topic" "log-alerts-topic" {
+  name = "${var.project_name}-log-alerts-topic"
+}
+
 resource "aws_sqs_queue" "log_queue" {
-  name                        = "LogQueue"
+  name                        = "${var.project_name}-log-queue"
   
   fifo_queue                  = false
   
@@ -9,10 +13,4 @@ resource "aws_sqs_queue" "log_queue" {
   max_message_size           = 262144
   message_retention_seconds  = 345600
   visibility_timeout_seconds = 360
-}
-resource "aws_lambda_event_source_mapping" "sqs_to_processor" {
-  event_source_arn = aws_sqs_queue.log_queue.arn
-  function_name    = aws_lambda_function.processor.arn
-  batch_size       = 10  
-  enabled          = true
 }
