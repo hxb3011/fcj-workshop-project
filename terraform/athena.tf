@@ -1,4 +1,3 @@
-# 1. Tạo Role riêng cho Lambda Getter
 resource "aws_iam_role" "getter_role" {
   name = "getter_execution_role"
 
@@ -12,7 +11,6 @@ resource "aws_iam_role" "getter_role" {
   })
 }
 
-# 2. Chính sách quyền hạn (Policy) cho Role Getter
 resource "aws_iam_role_policy" "getter_policy" {
   name = "getter_policy"
   role = aws_iam_role.getter_role.id
@@ -33,19 +31,27 @@ resource "aws_iam_role_policy" "getter_policy" {
           "athena:GetQueryExecution",
           "athena:GetQueryResults",
           "glue:GetTable",
-          "glue:GetDatabase"
+          "glue:GetDatabase",
+          "glue:GetPartitions"
         ]
         Effect   = "Allow"
         Resource = "*"
       },
       {
         Sid      = "S3Access"
-        Action   = ["s3:Get*", "s3:List*", "s3:PutObject"]
+        Action   = [
+          "s3:Get*", 
+          "s3:List*", 
+          "s3:PutObject",
+          "s3:GetBucketLocation"
+        ]
         Effect   = "Allow"
         Resource = [
+          "arn:aws:s3:::fcaj-log-archive-project",
+          "arn:aws:s3:::fcaj-athena-queries-project-output",
+          
           "arn:aws:s3:::fcaj-log-archive-project/*",
-          "arn:aws:s3:::fcaj-athena-queries-project-output/*",
-          "arn:aws:s3:::fcaj-athena-queries-project-output"
+          "arn:aws:s3:::fcaj-athena-queries-project-output/*"
         ]
       },
       {
@@ -61,6 +67,9 @@ resource "aws_iam_role_policy" "getter_policy" {
 # 3. Cấu hình Workgroup cho Athena
 resource "aws_athena_workgroup" "log_project_workgroup" {
   name = "log_project_workgroup"
+
+  # Cho phép Terraform xóa Workgroup ngay cả khi còn lịch sử truy vấn
+  force_destroy = true 
 
   configuration {
     result_configuration {

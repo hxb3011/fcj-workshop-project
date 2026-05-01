@@ -34,7 +34,7 @@ def lambda_handler(event, context):
     else:
         # TRUY VẤN LOG CŨ TỪ ATHENA + GLUE
         # Athena sử dụng Partition Projection đã định nghĩa trong glue.tf
-        query = f"SELECT * FROM app_logs WHERE appId = '{app_id}' ORDER BY timestamp DESC LIMIT 100"
+        query = f"SELECT * FROM app_logs WHERE appid = '{app_id}' ORDER BY timestamp DESC LIMIT 100"
         
         response = athena.start_query_execution(
             QueryString=query,
