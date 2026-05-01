@@ -73,7 +73,7 @@ data "archive_file" "processor_zip" {
 # Triển khai
 resource "aws_lambda_function" "processor" {
   filename      = data.archive_file.processor_zip.output_path
-  function_name = "gsvn-log-processor"
+  function_name = "processor"
   role          = aws_iam_role.processor_role.arn
   handler       = "processor.lambda_handler"
   runtime       = "python3.11"
