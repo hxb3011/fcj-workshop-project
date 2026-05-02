@@ -112,7 +112,6 @@ async def get_cold_logs(app_id: str, date: str, user=Depends(verify_token)):
             SELECT * FROM "{ATHENA_DB}"."{TABLE_LOGS.lower()}"
             WHERE appId = '{app_id}' 
               AND year = '{year}' AND month = '{month}' AND day = '{day}'
-            ORDER BY timestamp DESC
             LIMIT 100
         """
 

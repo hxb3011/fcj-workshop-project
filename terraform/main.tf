@@ -135,21 +135,21 @@ module "register_app" {
   execution_role_arn = module.iam.execution_role_arn
   task_role_arn      = module.iam.task_role_arn
 }
-# module "monitor_app" {
-#   source            = "./modules/monitorApp"
-#   project_name    = "fcaj-v2-monitor"
-#   subnet_id         = module.network2.public2_subnet_ids[0] 
-#   security_group_id = module.network2.backend_sg_id
-#   iam_instance_profile_name  = module.iam.monitor_app_profile_name
-#     app_env_vars = {
-#     USER_POOL_ID         = module.auth.user_pool_id
-#     CLIENT_ID            = module.auth.client_id
-#     TABLE_LOGS           = module.database.dynamodb_app_logs_name
-#     GLUE_DATABASE_NAME   = module.analytics.glue_database_name
-#     ATHENA_WORKGROUP_NAME = module.analytics.athena_workgroup_name
-#     ATHENA_OUTPUT_S3     = "s3://${module.storage.athena_results_bucket_name}/results/"
-#   }
-# }
+module "monitor_app" {
+  source            = "./modules/monitorApp"
+  project_name    = "fcaj-v2-monitor"
+  subnet_id         = module.network2.public2_subnet_ids[0] 
+  security_group_id = module.network2.backend_sg_id
+  iam_instance_profile_name  = module.iam.monitor_app_profile_name
+    app_env_vars = {
+    USER_POOL_ID         = module.auth.user_pool_id
+    CLIENT_ID            = module.auth.client_id
+    TABLE_LOGS           = module.database.dynamodb_app_logs_name
+    GLUE_DATABASE_NAME   = module.analytics.glue_database_name
+    ATHENA_WORKGROUP_NAME = module.analytics.athena_workgroup_name
+    ATHENA_OUTPUT_S3     = "s3://${module.storage.athena_results_bucket_name}/results/"
+  }
+}
 
 
 
