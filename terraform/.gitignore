@@ -2,3 +2,4 @@
 output.
 .terraform.lock.hcl
 client/.env
+*.zip
