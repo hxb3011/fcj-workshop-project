@@ -4,11 +4,18 @@ module "iam" {
   user_pool_arn         = module.auth.user_pool_arn
   app_clients_table_arn = module.database.dynamodb_app_clients_arn
   sns_topic_arn         = module.messaging.sns_topic_arn
+  dynamodb_app_logs_arn      = module.database.dynamodb_app_logs_arn
+  log_archive_bucket_arn     = module.storage.log_archive_bucket_arn
+  athena_results_bucket_arn  = module.storage.athena_results_bucket_arn
 }
 
 module "network" {
   source       = "./modules/network"
   project_name = "fcaj-v2"
+}
+module "network2" {
+  source       = "./modules/network2"
+  project_name = "fcaj-v2-2"
 }
 module "database" {
   source       = "./modules/database"
@@ -95,16 +102,13 @@ resource "aws_lambda_event_source_mapping" "sqs_to_processor" {
   batch_size       = 10 
 }
 module "analytics" {
-  source                     = "./modules/analytics"
+  source = "./modules/analytics"
+
   project_name               = "fcaj-v2"
-  
-  # Dữ liệu từ module database
-  dynamodb_app_logs_arn      = module.database.dynamodb_app_logs_arn
-  
-  # Dữ liệu từ module storage
+  log_archive_bucket_name    = module.storage.log_archive_bucket_id
   log_archive_bucket_arn     = module.storage.log_archive_bucket_arn
+  athena_results_bucket_name = module.storage.athena_results_bucket_name
   athena_results_bucket_arn  = module.storage.athena_results_bucket_arn
-  athena_results_bucket_name = module.storage.athena_results_bucket_name 
 }
 
 
@@ -131,4 +135,21 @@ module "register_app" {
   execution_role_arn = module.iam.execution_role_arn
   task_role_arn      = module.iam.task_role_arn
 }
+module "monitor_app" {
+  source            = "./modules/monitorApp"
+  project_name    = "fcaj-v2-monitor"
+  subnet_id         = module.network2.public2_subnet_ids[0] 
+  security_group_id = module.network2.backend_sg_id
+  iam_instance_profile_name  = module.iam.monitor_app_profile_name
+    app_env_vars = {
+    USER_POOL_ID         = module.auth.user_pool_id
+    CLIENT_ID            = module.auth.client_id
+    TABLE_LOGS           = module.database.dynamodb_app_logs_name
+    GLUE_DATABASE_NAME   = module.analytics.glue_database_name
+    ATHENA_WORKGROUP_NAME = module.analytics.athena_workgroup_name
+    ATHENA_OUTPUT_S3     = "s3://${module.storage.athena_results_bucket_name}/results/"
+  }
+}
+
+
 
